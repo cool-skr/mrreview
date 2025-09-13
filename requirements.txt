@@ -1,0 +1,11 @@
+# Core AI Framework
+langchain
+langchain-groq
+
+# Environment & CLI
+python-dotenv
+click
+
+tree-sitter==0.21.0
+tree-sitter-languages==1.10.2
+pydantic 
