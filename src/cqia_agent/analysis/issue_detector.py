@@ -3,7 +3,7 @@ from tree_sitter import Tree, Node, Language
 from typing import Iterator, Dict
 
 from .models import Issue
-from src.ai.caller import call_ai 
+from cqia_agent.ai.caller import call_ai 
 
 COMPLEXITY_THRESHOLD = 10
 FUNCTION_QUERIES: Dict[str, str] = {

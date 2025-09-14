@@ -1,7 +1,7 @@
 import re
 from typing import Optional, Dict
-from src.analysis.models import Issue
-from src.ai.caller import call_ai
+from cqia_agent.analysis.models import Issue
+from cqia_agent.ai.caller import call_ai
 
 ENRICHMENT_PROMPT_TEMPLATE = """
 You are an expert code reviewer. A static analysis tool has found the following issue:

@@ -4,26 +4,26 @@ from dotenv import load_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
 
-from src.utils.file_handler import find_code_files
-from src.analysis.ast_parser import parse_file_to_ast
-from src.analysis.issue_detector import (
+from cqia_agent.utils.file_handler import find_code_files
+from cqia_agent.analysis.ast_parser import parse_file_to_ast
+from cqia_agent.analysis.issue_detector import (
     detect_complexity_issues,
     detect_missing_documentation,
     detect_hardcoded_secrets,
     detect_performance_issues_with_ai
 )
-from src.ai.enricher import enrich_issue
-from src.reporting.visualizer import generate_severity_chart
+from cqia_agent.ai.enricher import enrich_issue
+from cqia_agent.reporting.visualizer import generate_severity_chart
 
-from src.qa.indexer import create_vector_store
+from cqia_agent.qa.indexer import create_vector_store
 
-from src.qa.indexer import create_vector_store, DB_PATH
-from src.qa.retriever import create_rag_chain
-from src.qa.agent import create_agent_graph  
+from cqia_agent.qa.indexer import create_vector_store, DB_PATH
+from cqia_agent.qa.retriever import create_rag_chain
+from cqia_agent.qa.agent import create_agent_graph  
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-from src.reporting.display import display_ai_response
+from cqia_agent.reporting.display import display_ai_response
 
 @click.group()
 def cli():
@@ -120,15 +120,12 @@ def analyze(path, no_enrich, chart,no_index):
 def ask(path):
     """Starts an interactive Q&A session about the codebase."""
     console = Console()
-
-    if not os.path.exists(DB_PATH):
-        console.print("[bold yellow]Warning:[/bold yellow] No analysis index found.", style="yellow")
-        console.print("Performing a one-time code-only indexing. For more detailed answers, run 'analyze' first.")
-        code_files = list(find_code_files(path))
-        if not code_files:
-            console.print("No code files found to index. Exiting.", style="red")
-            return
-        create_vector_store(code_files, "")
+    code_files = list(find_code_files(path))
+    console.print("Performing RAG Ingestion", style="blue")
+    if not code_files:
+        console.print("No code files found to index. Exiting.", style="red")
+        return
+    create_vector_store(code_files, "")
 
     try:
         console.print("Loading knowledge base...", style="cyan")

@@ -2,7 +2,7 @@ import os
 import matplotlib.pyplot as plt
 from typing import List, Optional
 from collections import Counter
-from src.analysis.models import Issue
+from cqia_agent.analysis.models import Issue
 
 def generate_severity_chart(issues: List[Issue], output_dir: str) -> Optional[str]:
     """

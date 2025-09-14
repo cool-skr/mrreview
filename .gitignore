@@ -18,3 +18,7 @@ venv/
 cqia_reports/
 
 vector_db_store/
+# Python build artifacts
+build/
+dist/
+*.egg-info/

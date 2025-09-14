@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cqia-agent"
+version = "0.1.0"
+description = "An AI-powered Code Quality Intelligence Agent"
+readme = "README.md"
+requires-python = ">=3.9, <3.12"
+license = { text = "MIT" }
+dependencies = [
+    "click", "python-dotenv", "rich", "langchain", "langchain-groq",
+    "langchain_community", "langchain_core", "langgraph",
+    "pydantic", "tree-sitter==0.21.0", "tree-sitter-languages==1.10.2",
+    "sentence-transformers", "faiss-cpu", "matplotlib",
+    "fastapi", "uvicorn[standard]", "GitPython"
+]
+
+[project.scripts]
+# The entry point now correctly points to the main module inside our package
+cqia = "cqia_agent.main:cli"
+
+[tool.setuptools.packages.find]
+# This tells setuptools to look for packages inside the 'src' directory.
+# It will find the 'cqia_agent' package there.
+where = ["src"]

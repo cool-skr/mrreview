@@ -2,7 +2,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from src.ai.caller import get_llm
+from cqia_agent.ai.caller import get_llm
 
 RAG_PROMPT_TEMPLATE = """
 You are an expert code analysis assistant. A user is asking a question about a codebase.
