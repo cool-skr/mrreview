@@ -23,3 +23,9 @@ def overly_complex_function(h):
                                         if h:
                                             if h:
                                                 print("ok")
+def inefficient_string_builder(my_list):
+    """Builds a string badly."""
+    final_string = ""
+    for item in my_list:
+        final_string += str(item) + ","
+    return final_string

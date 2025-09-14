@@ -10,6 +10,7 @@ from src.analysis.issue_detector import (
     detect_complexity_issues,
     detect_missing_documentation,
     detect_hardcoded_secrets,
+    detect_performance_issues_with_ai
 )
 from src.ai.enricher import enrich_issue
 from src.reporting.visualizer import generate_severity_chart
@@ -62,6 +63,11 @@ def analyze(path, no_enrich, chart,no_index):
             lang_name = "python" if file_path.endswith('.py') else "javascript"
             all_issues.extend(detect_complexity_issues(tree, language, file_path, file_contents[file_path], lang_name))
             all_issues.extend(detect_missing_documentation(tree, language, file_path, file_contents[file_path], lang_name))
+
+            if not no_enrich:
+                all_issues.extend(detect_performance_issues_with_ai(tree, language, file_path, file_contents[file_path], lang_name))
+        else:
+            click.secho(f"  -> Failed to parse {os.path.basename(file_path)}", fg="red")
 
     if not no_enrich and all_issues:
         console.print(f"\n2. Enriching {len(all_issues)} issue(s) with AI... (this may take a moment)", style="bold cyan")

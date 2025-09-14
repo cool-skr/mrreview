@@ -18,6 +18,8 @@ Your task is to enrich this finding. Please provide a response in two parts, usi
 
 1.  **[EXPLANATION]**: In a friendly and educational tone, explain *why* this is an issue.
 2.  **[SUGGESTION]**: Provide a clear, actionable suggestion for how to fix the issue.
+Other than that remove any extra special asteriks (*)
+Do not have duplicates in content
 """
 
 def _extract_code_context(file_content: str, line_number: int, context_lines: int = 5) -> str:
@@ -29,7 +31,6 @@ def _extract_code_context(file_content: str, line_number: int, context_lines: in
 
 def _parse_ai_response(response: str) -> tuple[Optional[str], Optional[str]]:
     """A more robust parser for the AI's response."""
-    # Use case-insensitive search to find the markers
     exp_marker = "[explanation]"
     sug_marker = "[suggestion]"
     response_lower = response.lower()
