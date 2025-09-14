@@ -1,6 +1,7 @@
 # Core AI Framework
 langchain
 langchain-groq
+langchain_community
 faiss-cpu
 sentence-transformers
 
@@ -13,3 +14,4 @@ tree-sitter-languages==1.10.2
 pydantic
 
 rich 
+matplotlib

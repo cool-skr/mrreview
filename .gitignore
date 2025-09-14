@@ -14,3 +14,7 @@ venv/
 .vscode/ 
 .idea/ 
 *.DS_Store 
+
+cqia_reports/
+
+vector_db_store/
