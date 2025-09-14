@@ -16,6 +16,12 @@ def find_code_files(start_path: str) -> Iterator[str]:
     Yields:
         An iterator of absolute paths to the found code files.
     """
+
+    if os.path.isfile(start_path):
+        file_ext = os.path.splitext(start_path)[1]
+        if file_ext in SUPPORTED_EXTENSIONS:
+            yield start_path
+        return 
     for root, dirs, files in os.walk(start_path):
         dirs[:] = [d for d in dirs if d not in IGNORE_DIRECTORIES]
             

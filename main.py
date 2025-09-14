@@ -4,7 +4,11 @@ from dotenv import load_dotenv
 
 from src.utils.file_handler import find_code_files
 from src.analysis.ast_parser import parse_file_to_ast
-from src.analysis.issue_detector import detect_complexity_issues
+from src.analysis.issue_detector import (
+    detect_complexity_issues,
+    detect_missing_documentation,
+    detect_hardcoded_secrets
+)
 
 @click.group()
 def cli():
@@ -15,7 +19,7 @@ def cli():
     load_dotenv()
 
 @cli.command()
-@click.argument('path', type=click.Path(exists=True, file_okay=False, resolve_path=True))
+@click.argument('path', type=click.Path(exists=True, file_okay=True, dir_okay=True ,resolve_path=True))
 def analyze(path):
     """Analyzes the code repository at the given path."""
     click.echo(f"🚀 Starting analysis of '{path}'...")
@@ -38,13 +42,18 @@ def analyze(path):
             click.secho(f"  -> Error reading {os.path.basename(file_path)}: {e}", fg="red")
             continue
 
+        secret_issues = detect_hardcoded_secrets(file_path, file_content)
+        all_issues.extend(secret_issues)
+
         parse_result = parse_file_to_ast(file_path)
         if parse_result:
             tree, language = parse_result 
             lang_name = "python" if file_path.endswith('.py') else "javascript"
             
             complexity_issues = detect_complexity_issues(tree, language, file_path, file_content, lang_name)
+            doc_issues = detect_missing_documentation(tree, language, file_path, file_content, lang_name)
             all_issues.extend(complexity_issues)
+            all_issues.extend(doc_issues)
             
         else:
             click.secho(f"  -> Failed to parse {os.path.basename(file_path)}", fg="red")
@@ -53,15 +62,17 @@ def analyze(path):
     if not all_issues:
         click.secho("✅ No issues found. Great job!", fg="green")
     else:
+        severity_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
+        sorted_issues = sorted(all_issues, key=lambda i: (severity_order.get(i.severity, 99), i.file_path))
+        
         click.secho(f"Found {len(all_issues)} issue(s):", fg="yellow")
-        for issue in sorted(all_issues, key=lambda i: i.file_path):
-            click.echo(f"  - [{issue.severity}] {issue.file_path}:{issue.line_number}")
+        for issue in sorted_issues:
+            color = {"CRITICAL": "red", "HIGH": "yellow", "MEDIUM": "blue"}.get(issue.severity, "white")
+            click.secho(f"  - [{issue.severity}]", fg=color, nl=False)
+            click.echo(f" {issue.file_path}:{issue.line_number}")
             click.echo(f"    {issue.message}")
 
     click.secho("\n✅ Analysis complete!", fg="green")
-
-
-
 
 
 @cli.command()

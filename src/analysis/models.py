@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, Optional
 
 Severity = Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
@@ -13,6 +13,9 @@ class Issue(BaseModel):
     code: str = Field(..., description="A short code for the issue type, e.g., 'complexity'")
     message: str = Field(..., description="A developer-friendly message explaining the issue.")
     severity: Severity
+
+    ai_explanation: Optional[str] = None
+    ai_suggestion: Optional[str] = None
 
     class Config:
         use_enum_values = True
