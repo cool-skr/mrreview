@@ -7,8 +7,9 @@ from src.analysis.ast_parser import parse_file_to_ast
 from src.analysis.issue_detector import (
     detect_complexity_issues,
     detect_missing_documentation,
-    detect_hardcoded_secrets
+    detect_hardcoded_secrets,
 )
+from src.ai.enricher import enrich_issue
 
 @click.group()
 def cli():
@@ -19,8 +20,9 @@ def cli():
     load_dotenv()
 
 @cli.command()
-@click.argument('path', type=click.Path(exists=True, file_okay=True, dir_okay=True ,resolve_path=True))
-def analyze(path):
+@click.argument('path', type=click.Path(exists=True, file_okay=True, dir_okay=True, resolve_path=True))
+@click.option('--no-enrich', is_flag=True, help="Disable AI enrichment for a faster, offline analysis.")
+def analyze(path, no_enrich):
     """Analyzes the code repository at the given path."""
     click.echo(f"🚀 Starting analysis of '{path}'...")
     
@@ -30,35 +32,37 @@ def analyze(path):
         click.secho("No supported code files (.py, .js) found in the specified path.", fg="yellow")
         return
         
-    click.echo(f"Found {len(code_files)} code files to analyze.")
-    click.echo("1. Parsing files into ASTs...")
+    click.echo(f"Found {len(code_files)} code file(s) to analyze.")
+    click.echo("1. Running deterministic detectors...")
 
     all_issues = []
+    file_contents = {} 
     for file_path in code_files:
         try:
             with open(file_path, "rb") as f:
-                file_content = f.read()
-        except Exception as e:
-            click.secho(f"  -> Error reading {os.path.basename(file_path)}: {e}", fg="red")
+                file_contents[file_path] = f.read()
+        except Exception:
             continue
-
-        secret_issues = detect_hardcoded_secrets(file_path, file_content)
-        all_issues.extend(secret_issues)
-
+        
+        all_issues.extend(detect_hardcoded_secrets(file_path, file_contents[file_path]))
+        
         parse_result = parse_file_to_ast(file_path)
         if parse_result:
-            tree, language = parse_result 
+            tree, language = parse_result
             lang_name = "python" if file_path.endswith('.py') else "javascript"
             
-            complexity_issues = detect_complexity_issues(tree, language, file_path, file_content, lang_name)
-            doc_issues = detect_missing_documentation(tree, language, file_path, file_content, lang_name)
-            all_issues.extend(complexity_issues)
-            all_issues.extend(doc_issues)
-            
-        else:
-            click.secho(f"  -> Failed to parse {os.path.basename(file_path)}", fg="red")
+            all_issues.extend(detect_complexity_issues(tree, language, file_path, file_contents[file_path], lang_name))
+            all_issues.extend(detect_missing_documentation(tree, language, file_path, file_contents[file_path], lang_name))
 
-    click.echo("\n2. Analyzing for issues...")
+    if not no_enrich and all_issues:
+        click.echo(f"\n2. Enriching {len(all_issues)} issue(s) with AI... (this may take a moment)")
+        enriched_issues = []
+        for issue in all_issues:
+            file_content_str = file_contents[issue.file_path].decode('utf-8', errors='ignore')
+            enriched_issues.append(enrich_issue(issue, file_content_str))
+        all_issues = enriched_issues
+
+    click.echo("\n3. Analysis Report:")
     if not all_issues:
         click.secho("✅ No issues found. Great job!", fg="green")
     else:
@@ -68,15 +72,22 @@ def analyze(path):
         click.secho(f"Found {len(all_issues)} issue(s):", fg="yellow")
         for issue in sorted_issues:
             color = {"CRITICAL": "red", "HIGH": "yellow", "MEDIUM": "blue"}.get(issue.severity, "white")
-            click.secho(f"  - [{issue.severity}]", fg=color, nl=False)
+            click.secho(f"\n- [{issue.severity}]", fg=color, nl=False)
             click.echo(f" {issue.file_path}:{issue.line_number}")
-            click.echo(f"    {issue.message}")
+            click.echo(f"  └─ {issue.message}")
+            
+            if issue.ai_explanation:
+                click.secho("    AI Explanation:", bold=True)
+                click.echo(f"      {issue.ai_explanation}")
+            if issue.ai_suggestion:
+                click.secho("    AI Suggestion:", bold=True)
+                click.echo(f"      {issue.ai_suggestion}")
 
     click.secho("\n✅ Analysis complete!", fg="green")
 
 
 @cli.command()
-@click.argument('path', type=click.Path(exists=True, file_okay=False, resolve_path=True))
+@click.argument('path', type=click.Path(exists=True, file_okay=True, dir_okay=True, resolve_path=True))
 def ask(path):
     """Starts an interactive Q&A session about the codebase."""
     click.echo(f"🤖 Starting interactive Q&A for '{path}'. Type 'exit' to end.")
