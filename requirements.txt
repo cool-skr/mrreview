@@ -4,6 +4,8 @@ langchain-groq
 langchain_community
 faiss-cpu
 sentence-transformers
+langgraph
+langchain_core
 
 # Environment & CLI
 python-dotenv

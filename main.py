@@ -19,6 +19,7 @@ from src.qa.indexer import create_vector_store
 
 from src.qa.indexer import create_vector_store, DB_PATH
 from src.qa.retriever import create_rag_chain
+from src.qa.agent import create_agent_graph  
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
@@ -133,10 +134,12 @@ def ask(path):
         console.print("Loading knowledge base...", style="cyan")
         embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
         db = FAISS.load_local(DB_PATH, embeddings, allow_dangerous_deserialization=True)
-        rag_chain = create_rag_chain(db)
+        retriever = db.as_retriever()
+        
+        agent = create_agent_graph(retriever)
         console.print("🤖 [bold green]Knowledge base loaded. Ask me anything. Type 'exit' to end.[/bold green]")
     except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] Could not load knowledge base. Please run 'analyze'. Details: {e}")
+        console.print(f"[bold red]Error:[/bold red] Could not load the knowledge base. Run 'analyze'. Details: {e}")
         return
 
     while True:
@@ -145,7 +148,8 @@ def ask(path):
             break
         
         with console.status("[bold cyan]Thinking...[/bold cyan]", spinner="dots"):
-            response = rag_chain.invoke(question)
+            result = agent.invoke({"question": question})
+            response = result.get('generation', 'Sorry, I could not generate an answer.')
         
         display_ai_response(response)
 
