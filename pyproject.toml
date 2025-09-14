@@ -14,7 +14,7 @@ dependencies = [
     "langchain_community", "langchain_core", "langgraph",
     "pydantic", "tree-sitter==0.21.0", "tree-sitter-languages==1.10.2",
     "sentence-transformers", "faiss-cpu", "matplotlib",
-    "fastapi", "uvicorn[standard]", "GitPython"
+    "fastapi", "uvicorn[standard]", "GitPython", "Jinja2"
 ]
 
 [project.scripts]

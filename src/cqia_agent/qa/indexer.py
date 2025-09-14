@@ -1,5 +1,6 @@
 import os
 from typing import List, Dict
+from rich.progress import track
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import FAISS
@@ -18,7 +19,7 @@ def create_vector_store(file_paths: List[str], issues_summary: str):
     print("Creating vector store for Q&A...")
     
     documents = []
-    for file_path in file_paths:
+    for file_path in track(file_path, description="[cyan]Ingesting files...[/cyan]"):
         try:
             loader = TextLoader(file_path, encoding='utf-8')
             documents.extend(loader.load())

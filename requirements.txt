@@ -6,6 +6,7 @@ faiss-cpu
 sentence-transformers
 langgraph
 langchain_core
+Jinja2
 
 # Environment & CLI
 python-dotenv
