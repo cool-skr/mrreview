@@ -1,41 +1,37 @@
 # Code Quality Intelligence Agent (CQIA)
 
-[](https://python.org)
-[](https://opensource.org/licenses/MIT)
-[](https://www.langchain.com/)
-
-An advanced CLI tool that performs a multi-faceted analysis of codebases, identifies quality issues using both deterministic and AI-powered detectors, generates rich reports with visualizations, and provides an interactive, conversational Q\&A agent to explore the code.
+An advanced CLI tool that performs a multi-faceted analysis of codebases, identifies quality issues using both deterministic and AI-powered detectors, generates rich reports with visualizations, and provides an interactive, conversational Q&A agent to explore the code.
 
 -----
 ![cqia_gif](https://github.com/user-attachments/assets/21015efa-26aa-4080-836b-8a502e416e1a)
 
 
-## 🎯 The Problem
+## The Problem
 
 Modern software teams struggle to maintain code quality at scale. Between code reviews, testing, security, and managing technical debt, developers spend significant time on quality assurance tasks. This agent automates and augments these tasks, going beyond simple linting to provide deep, actionable insights.
 
-## ✨ Features
+## Features
 
-  * **🧠 Multi-Faceted Analysis:** Combines multiple analysis techniques:
+  * **Multi-Faceted Analysis:** Combines multiple analysis techniques:
       * **AST Parsing:** Deep structural analysis for complexity and documentation gaps.
       * **Static Tool Orchestration:** Integrates with industry-standard tools like **Bandit** (Python security) and **ESLint** (JavaScript quality).
       * **AI-Powered Detection:** Uses LLMs to find nuanced issues like performance anti-patterns.
-  * **🤖 AI-Enriched Reporting:** Goes beyond simple error codes, using an LLM to provide human-readable explanations and actionable suggestions for fixing issues.
-  * **📊 Rich, Developer-Friendly Reports:**
+  * **AI-Enriched Reporting:** Goes beyond simple error codes, using an LLM to provide human-readable explanations and actionable suggestions for fixing issues.
+  * **Rich, Developer-Friendly Reports:**
       * Beautiful, color-coded reports directly in your terminal.
       * Optional severity distribution charts (`--chart`).
       * Optional self-contained, shareable HTML reports (`--html`).
-  * **💬 Interactive Q\&A Agent:**
+  * **Interactive Q&A Agent:**
       * Features a powerful RAG (Retrieval-Augmented Generation) pipeline.
       * Uses a multi-step **LangGraph** agent to reason about complex, multi-context questions.
-  * **🚀 GitHub Integration:**
+  * **GitHub Integration:**
       * Analyzes pull request diffs and posts findings as review comments directly on GitHub.
-  * **📦 Professional Tooling:**
+  * **Professional Tooling:**
       * Packaged as a proper installable CLI tool (`cqia`).
       * Robust, asynchronous web server for remote analysis (planned).
       * Clean, modular, and extensible architecture.
 
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 
@@ -81,14 +77,12 @@ Modern software teams struggle to maintain code quality at scale. Between code r
     pip install -e .
     ```
 
-## ⚙️ Configuration
+## Configuration
 
 The agent requires API keys for AI features and GitHub integration.
 
 1.  Create a file named `.env` in the root of the project.
 2.  Add your keys to this file. It is already in `.gitignore`, so it will not be committed.
-
-<!-- end list -->
 
 ```env
 # .env file
@@ -100,7 +94,7 @@ GROQ_API_KEY="gsk_YourGroqAPIKey"
 GITHUB_TOKEN="ghp_YourGitHubPersonalAccessToken"
 ```
 
-## 📖 Usage
+## Usage
 
 ### Analyzing a Repository
 
@@ -124,7 +118,7 @@ cqia analyze . --chart --html report.html
 cqia analyze . --no-enrich
 ```
 
-### Interactive Q\&A
+### Interactive Q&A
 
 First, run `analyze` on a repository to build the knowledge base. Then, start the interactive session with the `ask` command.
 
@@ -156,7 +150,7 @@ cqia gh-review <owner/repo> <pr_number> --path . --base <base_sha> --head <head_
   * `<base_sha>`: The commit SHA of the target branch (e.g., `main`).
   * `<head_sha>`: The commit SHA of the feature branch.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 cqia/
@@ -179,6 +173,6 @@ cqia/
         └── reporting/    # Report generators (display, visualizer, HTML)
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
