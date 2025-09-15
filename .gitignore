@@ -22,3 +22,7 @@ vector_db_store/
 build/
 dist/
 *.egg-info/
+
+# Node.js dependencies and lock files
+node_modules/
+package-lock.json

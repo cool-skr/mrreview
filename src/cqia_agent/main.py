@@ -13,7 +13,7 @@ from .reporting.html_generator import generate_html_report
 from cqia_agent.qa.agent import create_agent_graph
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-
+from .integrations.github_pr import get_changed_files_from_diff, post_pr_review
 from cqia_agent.reporting.display import display_ai_response
 
 
@@ -82,7 +82,6 @@ def analyze(path, no_enrich, chart, html):
     console.print("\n✅ Analysis complete!", style="bold green")
 
 
-
 @cli.command()
 @click.argument('path', type=click.Path(exists=True, file_okay=True, dir_okay=True, resolve_path=True))
 def ask(path):
@@ -117,6 +116,41 @@ def ask(path):
             response = result.get('generation', 'Sorry, I could not generate an answer.')
         
         display_ai_response(response)
+
+@cli.command('gh-review')
+@click.argument('repo_name') 
+@click.argument('pr_number', type=int)
+@click.option('--path', 'local_path', type=click.Path(exists=True, file_okay=False), default='.', help="Path to the local checkout of the repository.")
+@click.option('--base', 'base_sha', required=True, help="The base commit SHA of the PR.")
+@click.option('--head', 'head_sha', required=True, help="The head commit SHA of the PR.")
+def github_review(repo_name, pr_number, local_path, base_sha, head_sha):
+    """Analyzes a GitHub PR diff and posts review comments."""
+    console = Console()
+    console.print(f"🚀 Starting GitHub PR analysis for {repo_name} #{pr_number}...", style="bold green")
+    
+    console.print(f"Finding changed files between {base_sha[:7]} and {head_sha[:7]}...")
+    changed_files = get_changed_files_from_diff(local_path, base_sha, head_sha)
+    
+    if not changed_files:
+        console.print("No changed .py or .js files found to analyze.", style="yellow")
+        return
+
+    console.print(f"Analyzing {len(changed_files)} changed file(s)...")
+    all_issues, _ = perform_analysis(local_path, no_enrich=False)
+
+    issues_in_pr = [
+        issue for issue in all_issues 
+        if os.path.abspath(issue.file_path) in [os.path.abspath(f) for f in changed_files]
+    ]
+
+    if not issues_in_pr:
+        console.print("✅ No issues found in the changed files.", style="bold green")
+        post_pr_review(repo_name, pr_number, head_sha, [])
+    else:
+        console.print(f"Found {len(issues_in_pr)} issues. Posting to GitHub...", style="yellow")
+        post_pr_review(repo_name, pr_number, head_sha, issues_in_pr)
+
+    console.print("\n✅ GitHub PR review complete!", style="bold green")
 
 if __name__ == "__main__":
     cli()

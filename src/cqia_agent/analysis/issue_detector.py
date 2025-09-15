@@ -1,9 +1,85 @@
 import re
+import subprocess
+import json
 from tree_sitter import Tree, Node, Language
 from typing import Iterator, Dict
 
 from .models import Issue
 from cqia_agent.ai.caller import call_ai 
+
+def run_eslint_detector(file_path: str) -> Iterator[Issue]:
+    """
+    Runs the ESLint scanner on a JavaScript file and yields issues.
+    """
+    if not file_path.endswith('.js'):
+        return
+
+    command = ["npx", "eslint", "-f", "json", file_path]
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, shell=True)
+        
+        if result.stdout:
+            data = json.loads(result.stdout)
+            if not data:
+                return
+
+            file_results = data[0]
+            for issue in file_results.get("messages", []):
+                severity_map = {1: "MEDIUM", 2: "HIGH"}
+                
+                yield Issue(
+                    file_path=file_results.get("filePath"),
+                    line_number=issue.get("line"),
+                    column_number=issue.get("column"),
+                    code=f"eslint:{issue.get('ruleId')}",
+                    message=issue.get("message"),
+                    severity=severity_map.get(issue.get("severity"), "LOW")
+                )
+    except FileNotFoundError:
+        print("Warning: 'npx' command not found. Is Node.js/npm installed correctly?")
+    except (json.JSONDecodeError, Exception) as e:
+        print(f"Warning: Failed to parse ESLint output for {file_path}. Error: {e}")
+
+def run_bandit_detector(file_path: str) -> Iterator[Issue]:
+    """
+    Runs the Bandit security scanner on a Python file and yields issues.
+    """
+    if not file_path.endswith('.py'):
+        return
+
+    command = ["bandit", "-f", "json", file_path]
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False)
+
+        if result.returncode > 1:
+            print(f"Warning: Bandit encountered a fatal error on {file_path}. Error: {result.stderr}")
+            return
+
+        if not result.stdout:
+            return
+
+        data = json.loads(result.stdout)
+        
+        for issue in data.get("results", []):
+            severity_map = {
+                "LOW": "LOW",
+                "MEDIUM": "MEDIUM",
+                "HIGH": "HIGH"
+            }
+            
+            yield Issue(
+                file_path=issue.get("filename"),
+                line_number=issue.get("line_number"),
+                column_number=issue.get("col_offset"),
+                code=f"bandit:{issue.get('test_id')}",
+                message=issue.get("issue_text"),
+                severity=severity_map.get(issue.get("issue_severity"), "LOW")
+            )
+
+    except FileNotFoundError:
+        print("Warning: 'bandit' command not found. Is it installed in the environment?")
+    except (json.JSONDecodeError, Exception) as e:
+        print(f"Warning: Failed to parse Bandit output for {file_path}. Error: {e}")
 
 COMPLEXITY_THRESHOLD = 10
 FUNCTION_QUERIES: Dict[str, str] = {

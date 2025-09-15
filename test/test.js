@@ -54,6 +54,9 @@ function inefficientStringBuilder(myArray) {
     return finalString;
 }
 
+const anUnusedVariable = "This should be flagged by ESLint";
+
+
 wellDocumentedFunction("World");
 undocumentedFunction(1, 2);
 overlyComplexFunction(true);

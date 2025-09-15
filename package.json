@@ -1,0 +1,28 @@
+{
+  "name": "cqia",
+  "version": "1.0.0",
+  "description": "This project is an AI-powered agent that analyzes code repositories to find quality issues, provide explanations, and answer questions about the codebase.",
+  "main": "eslint.config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cool-skr/mrreview.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cool-skr/mrreview/issues"
+  },
+  "homepage": "https://github.com/cool-skr/mrreview#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "eslint": "^9.35.0",
+    "globals": "^16.4.0"
+  }
+}
