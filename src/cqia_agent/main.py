@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
-
+import warnings 
 from cqia_agent.utils.file_handler import find_code_files
 from cqia_agent.core_analyzer import perform_analysis
 from cqia_agent.reporting.visualizer import generate_severity_chart
@@ -19,6 +19,7 @@ from cqia_agent.reporting.display import display_ai_response
 
 @click.group()
 def cli():
+    warnings.filterwarnings("ignore", category=FutureWarning, module='tree_sitter')
     load_dotenv()
 
 

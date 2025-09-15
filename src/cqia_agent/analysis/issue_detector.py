@@ -28,7 +28,7 @@ def run_eslint_detector(file_path: str) -> Iterator[Issue]:
                 severity_map = {1: "MEDIUM", 2: "HIGH"}
                 
                 yield Issue(
-                    file_path=file_results.get("filePath"),
+                    file_path=file_path,
                     line_number=issue.get("line"),
                     column_number=issue.get("column"),
                     code=f"eslint:{issue.get('ruleId')}",
@@ -68,7 +68,7 @@ def run_bandit_detector(file_path: str) -> Iterator[Issue]:
             }
             
             yield Issue(
-                file_path=issue.get("filename"),
+                file_path=file_path,
                 line_number=issue.get("line_number"),
                 column_number=issue.get("col_offset"),
                 code=f"bandit:{issue.get('test_id')}",
