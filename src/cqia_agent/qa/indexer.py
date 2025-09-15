@@ -19,7 +19,7 @@ def create_vector_store(file_paths: List[str], issues_summary: str):
     print("Creating vector store for Q&A...")
     
     documents = []
-    for file_path in track(file_path, description="[cyan]Ingesting files...[/cyan]"):
+    for file_path in track(file_paths, description="[cyan]Ingesting files...[/cyan]"):
         try:
             loader = TextLoader(file_path, encoding='utf-8')
             documents.extend(loader.load())

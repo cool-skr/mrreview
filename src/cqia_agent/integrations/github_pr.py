@@ -45,37 +45,29 @@ def post_pr_review(repo_name: str, pr_number: int, head_sha: str, issues: List[I
 
         comments = []
         for issue in issues:
-            # GitHub API needs the path relative to the repo root
             relative_path = os.path.relpath(issue.file_path, start=os.getcwd())
             
-            # Filter to only comment on files that are actually in the PR's file list
             pr_files = [f.filename for f in pr.get_files()]
             if relative_path.replace('\\', '/') not in pr_files:
                 continue
 
-            comment_body = (
-                f"**CQIA Found an Issue: [{issue.severity}]**\n\n"
-                f"**Code:** `{issue.code}`\n"
-                f"**Message:** {issue.message}\n\n"
-            )
+            comment_body = (f"**CQIA Found an Issue: [{issue.severity}]**\n\n"
+                          f"**Code:** `{issue.code}`\n"
+                          f"**Message:** {issue.message}\n\n")
             if issue.ai_suggestion:
                 comment_body += f"**AI Suggestion:**\n{issue.ai_suggestion}"
             
-            comments.append({
-                "body": comment_body,
-                "path": relative_path,
-                "line": issue.line_number,
-            })
-
+            comments.append({"body": comment_body, "path": relative_path, "line": issue.line_number})
+        
         if not comments:
             print("No new issues found on the changed lines of this PR.")
-            # Optionally, post a "success" comment
             pr.create_issue_comment("✅ CQIA analysis complete. No new issues found!")
             return
 
-        # Submit the review
+        commit_obj = repo.get_commit(sha=pr.head.sha)
+
         pr.create_review(
-            commit=pr.head.sha,
+            commit=commit_obj,
             body="CQIA found some issues in this PR. Please review the comments below.",
             event="COMMENT",
             comments=comments
@@ -83,6 +75,7 @@ def post_pr_review(repo_name: str, pr_number: int, head_sha: str, issues: List[I
         print(f"Successfully posted {len(comments)} comments to PR #{pr_number} in {repo_name}.")
 
     except GithubException as e:
-        print(f"GitHub API Error: {e.status} - {e.data}")
+        print(f"GitHub API Error for repository '{repo_name}': {e.status} - {e.data.get('message')}")
+        print("Please check that the repository name is correct and your GITHUB_TOKEN has the 'repo' scope.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
