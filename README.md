@@ -7,9 +7,8 @@
 An advanced CLI tool that performs a multi-faceted analysis of codebases, identifies quality issues using both deterministic and AI-powered detectors, generates rich reports with visualizations, and provides an interactive, conversational Q\&A agent to explore the code.
 
 -----
+![cqia_gif](https://github.com/user-attachments/assets/21015efa-26aa-4080-836b-8a502e416e1a)
 
-*Replace this with a screenshot or animated GIF of the agent's rich terminal output.*
-*(A GIF showing the progress bar, the final rich report, and a short `ask` session would be highly effective.)*
 
 ## 🎯 The Problem
 
