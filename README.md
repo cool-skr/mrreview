@@ -5,11 +5,6 @@ An advanced CLI tool that performs a multi-faceted analysis of codebases, identi
 -----
 ![cqia_gif](https://github.com/user-attachments/assets/21015efa-26aa-4080-836b-8a502e416e1a)
 
-
-## The Problem
-
-Modern software teams struggle to maintain code quality at scale. Between code reviews, testing, security, and managing technical debt, developers spend significant time on quality assurance tasks. This agent automates and augments these tasks, going beyond simple linting to provide deep, actionable insights.
-
 ## Features
 
   * **Multi-Faceted Analysis:** Combines multiple analysis techniques:
@@ -85,7 +80,6 @@ The agent requires API keys for AI features and GitHub integration.
 2.  Add your keys to this file. It is already in `.gitignore`, so it will not be committed.
 
 ```env
-# .env file
 
 # Required for all AI features (enrichment, AI detectors, Q&A)
 GROQ_API_KEY="gsk_YourGroqAPIKey"
