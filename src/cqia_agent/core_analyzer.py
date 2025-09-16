@@ -4,6 +4,8 @@ from rich.progress import track
 from .utils.file_handler import find_code_files
 from .analysis.ast_parser import parse_file_to_ast
 from .analysis.issue_detector import (
+    run_eslint_detector,
+    run_bandit_detector,
     detect_complexity_issues,
     detect_missing_documentation,
     detect_hardcoded_secrets,
@@ -12,12 +14,19 @@ from .analysis.issue_detector import (
 from .ai.enricher import enrich_issue
 from .analysis.models import Issue
 
-def perform_analysis(path: str, no_enrich: bool) -> Tuple[List[Issue], Dict[str, bytes]]:
+def perform_analysis(path: str = None, files: List[str] = None, no_enrich: bool = False) -> Tuple[List[Issue], Dict[str, bytes]]:
     """
-    Performs a full analysis on a given path and returns issues and file contents.
+    Performs a full analysis on a given path or list of files and returns issues and file contents.
     This is the core logic engine of the agent.
     """
-    code_files = list(find_code_files(path))
+    if files:
+        code_files = files
+    elif path:
+        code_files = list(find_code_files(path))
+    else:
+        # Neither path nor files provided, return empty
+        return [], {}
+
     if not code_files:
         return [], {}
 
@@ -30,6 +39,8 @@ def perform_analysis(path: str, no_enrich: bool) -> Tuple[List[Issue], Dict[str,
         except Exception:
             continue
         
+        all_issues.extend(run_eslint_detector(file_path))
+        all_issues.extend(run_bandit_detector(file_path))
         all_issues.extend(detect_hardcoded_secrets(file_path, file_contents[file_path]))
         
         parse_result = parse_file_to_ast(file_path)

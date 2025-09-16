@@ -29,3 +29,9 @@ def inefficient_string_builder(my_list):
     for item in my_list:
         final_string += str(item) + ","
     return final_string
+
+
+def unsafe_function(user_input):
+    # Bandit will flag the use of 'assert' as a potential security issue,
+    # because assert statements can be disabled in production.
+    assert user_input.is_admin(), "User is not an admin"    
