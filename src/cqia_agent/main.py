@@ -9,11 +9,12 @@ from cqia_agent.core_analyzer import perform_analysis
 from cqia_agent.reporting.visualizer import generate_severity_chart
 from cqia_agent.qa.indexer import create_vector_store, DB_PATH
 from cqia_agent.qa.retriever import create_rag_chain
+from .integrations.github_pr import get_changed_files_from_diff, get_changed_lines_from_pr, post_pr_comment
+from github import Github
 from .reporting.html_generator import generate_html_report 
 from cqia_agent.qa.agent import create_agent_graph
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from .integrations.github_pr import get_changed_files_from_diff, post_pr_review
 from cqia_agent.reporting.display import display_ai_response
 
 
@@ -119,19 +120,23 @@ def ask(path):
         display_ai_response(response)
 
 @cli.command('gh-review')
-@click.argument('repo_name') 
+@click.argument('repo_name')
 @click.argument('pr_number', type=int)
 @click.option('--path', 'local_path', type=click.Path(exists=True, file_okay=False), default='.', help="Path to the local checkout of the repository.")
 @click.option('--base', 'base_sha', required=True, help="The base commit SHA of the PR.")
 @click.option('--head', 'head_sha', required=True, help="The head commit SHA of the PR.")
 def github_review(repo_name, pr_number, local_path, base_sha, head_sha):
-    """Analyzes a GitHub PR diff and posts review comments."""
+    """Analyzes a GitHub PR diff and posts a summary comment."""
     console = Console()
     console.print(f"🚀 Starting GitHub PR analysis for {repo_name} #{pr_number}...", style="bold green")
     
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        console.print("Error: GITHUB_TOKEN not found.", style="red")
+        return
+
     console.print(f"Finding changed files between {base_sha[:7]} and {head_sha[:7]}...")
     changed_files = get_changed_files_from_diff(local_path, base_sha, head_sha)
-    
     if not changed_files:
         console.print("No changed .py or .js files found to analyze.", style="yellow")
         return
@@ -139,17 +144,19 @@ def github_review(repo_name, pr_number, local_path, base_sha, head_sha):
     console.print(f"Analyzing {len(changed_files)} changed file(s)...")
     all_issues, _ = perform_analysis(local_path, no_enrich=False)
 
-    issues_in_pr = [
-        issue for issue in all_issues 
-        if os.path.abspath(issue.file_path) in [os.path.abspath(f) for f in changed_files]
-    ]
+    console.print("Fetching changed line numbers from GitHub PR...")
+    g = Github(token)
+    repo = g.get_repo(repo_name)
+    pr = repo.get_pull(pr_number)
+    changed_lines = get_changed_lines_from_pr(pr)
 
-    if not issues_in_pr:
-        console.print("✅ No issues found in the changed files.", style="bold green")
-        post_pr_review(repo_name, pr_number, head_sha, [])
-    else:
-        console.print(f"Found {len(issues_in_pr)} issues. Posting to GitHub...", style="yellow")
-        post_pr_review(repo_name, pr_number, head_sha, issues_in_pr)
+    issues_in_pr_diff = []
+    for issue in all_issues:
+        relative_path = os.path.relpath(issue.file_path, start=local_path).replace('\\', '/')
+        if relative_path in changed_lines and issue.line_number in changed_lines[relative_path]:
+            issues_in_pr_diff.append(issue)
+
+    post_pr_comment(repo_name, pr_number, issues_in_pr_diff)
 
     console.print("\n✅ GitHub PR review complete!", style="bold green")
 
